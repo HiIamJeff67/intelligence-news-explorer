@@ -1,0 +1,13 @@
+[新版本]
+
+功能需求
+* 使用 SwiftUI 的 Binding 元件輸入資料，比方 TextField、Slider、Toggle、Picker、DatePicker、PhotosPicker、Stepper、ColorPicker、MultiDatePicker。
+* 利用 Foundation Models 實現本機 AI 功能，使用到 @Generable、Streaming response & Tool calling。
+* 串接網路 API 抓資料。
+* 使用 TipKit 顯示 App 的操作說明 / 功能介紹。
+* 使用 SPM 加入第三方套件。(不包含上課範例提到的套件)
+* 使用到至少一個沒教過的功能技術，使用愈多分數愈高。可在文章裡特別說明使用哪些沒教的技術。範例: Swift Charts、SwiftData、Widget，CLLocationManager、Firebase，多國語言、QRCode、FB SDK、ARKit、FaceID、Swift Testing、watchOS App、visionOS App。
+
+加分功能
+* 製作 App 上架的 screenshot。
+* 製作 App 的 landing page。
