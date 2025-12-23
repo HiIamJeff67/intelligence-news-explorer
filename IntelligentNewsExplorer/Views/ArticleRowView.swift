@@ -5,7 +5,6 @@ struct ArticleRowView: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Image on the left
             AsyncImage(url: URL(string: article.urlToImage ?? "")) { phase in
                 switch phase {
                 case .empty:
@@ -27,7 +26,6 @@ struct ArticleRowView: View {
             .frame(width: 100, height: 100)
             .clipShape(RoundedRectangle(cornerRadius: 8))
             
-            // Text Content
             VStack(alignment: .leading, spacing: 4) {
                 Text(article.title)
                     .font(.headline)
@@ -43,7 +41,6 @@ struct ArticleRowView: View {
                 
                 Spacer()
                 
-                // Optional: Date or Source
                 HStack {
                     Text(article.source.name)
                         .font(.caption)
@@ -51,9 +48,6 @@ struct ArticleRowView: View {
                         .foregroundStyle(.secondary)
                     
                     Spacer()
-                    
-                    // Simple date formatting if needed, or just show raw if it's readable
-                    // For now, let's just show source name to keep it clean
                 }
             }
         }

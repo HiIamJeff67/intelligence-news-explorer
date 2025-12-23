@@ -8,7 +8,13 @@ final class NewsViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
 
+    @Published var summary: String = ""
+    @Published var isSummarizing: Bool = false
+    @Published var aiErrorMessage: String?
+    @Published var showAIError: Bool = false
+
     private var client: NewsAPIClient?
+    private let aiService = AIService()
 
     init() {
         do {
@@ -46,9 +52,24 @@ final class NewsViewModel: ObservableObject {
         }
         isLoading = false
     }
-}//
-//  NewsViewModel.swift
-//  IntelligentNewsExplorer
-//
-//  Created by HiIamJeff on 2025/12/22.
-//
+    
+    func summarizeHeadlines() async {
+        guard !topHeadlines.isEmpty else { return }
+        
+        isSummarizing = true
+        aiErrorMessage = nil
+        summary = ""
+        
+        let headlinesText = topHeadlines.prefix(10).map { $0.title }.joined(separator: "\n- ")
+        
+        do {
+            let result = try await aiService.summarize(text: headlinesText)
+            self.summary = result
+        } catch {
+            self.aiErrorMessage = error.localizedDescription
+            self.showAIError = true
+        }
+        
+        isSummarizing = false
+    }
+}

@@ -19,9 +19,7 @@ struct AuthView: View {
                 Color(red: 186/255, green: 196/255, blue: 215/255)
                     .ignoresSafeArea()
 
-                // Content
                 VStack(spacing: 24) {
-                    // App Icon
                     if let icon = Bundle.main.icon {
                         Image(uiImage: icon)
                             .resizable()
@@ -29,7 +27,6 @@ struct AuthView: View {
                             .frame(width: 200, height: 200)
                             .clipShape(RoundedRectangle(cornerRadius: 32))
                     } else {
-                        // Fallback if App Icon cannot be loaded
                         Image(systemName: "bubble.left.and.bubble.right.fill")
                             .resizable()
                             .scaledToFit()
@@ -124,7 +121,6 @@ struct AuthView: View {
     }
 }
 
-// Helper to fetch App Icon
 extension Bundle {
     var icon: UIImage? {
         if let icons = infoDictionary?["CFBundleIcons"] as? [String: Any],

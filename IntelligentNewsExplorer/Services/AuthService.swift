@@ -11,12 +11,10 @@ class AuthService {
     var errorMessage: String?
     
     init() {
-        // Ensure Firebase is configured (useful for Previews)
         if FirebaseApp.app() == nil {
             FirebaseApp.configure()
         }
         
-        // Listen for auth state changes
         _ = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             self?.user = user
         }

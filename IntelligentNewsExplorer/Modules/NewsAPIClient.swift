@@ -1,6 +1,7 @@
 import Foundation
 
 enum NewsAPIError: Error, LocalizedError {
+    case missingAPIKey
     case invalidURL
     case invalidResponse
     case apiError(String)
@@ -8,32 +9,40 @@ enum NewsAPIError: Error, LocalizedError {
     
     var errorDescription: String? {
         switch self {
-        case .invalidURL: return "Invalid URL"
-        case .invalidResponse: return "Invalid Response"
-        case .apiError(let message): return message
-        case .decodingError: return "Failed to decode response"
+        case .missingAPIKey:
+            return "Missing NewsAPI key"
+        case .invalidURL:
+            return "Invalid URL"
+        case .invalidResponse:
+            return "Invalid Response"
+        case .apiError(let message):
+            return message
+        case .decodingError:
+            return "Failed to decode response"
         }
     }
 }
 
 class NewsAPIClient {
+    private let session: URLSession
     private let apiKey: String
     private let baseURL = "https://newsapi.org/v2"
     
-    init(apiKey: String? = nil) throws {
-        // Try to get key from Info.plist or use the hardcoded one from config if available
-        if let key = apiKey {
-            self.apiKey = key
-        } else if let key = Bundle.main.object(forInfoDictionaryKey: "NEWS_API_KEY") as? String, !key.isEmpty {
-            self.apiKey = key
-        } else {
-            // Fallback to the one found in xcconfig if not in Info.plist (for development)
-            self.apiKey = "681611199a5349258c308eeea9f07d29"
+    init(session: URLSession = .shared) throws {
+        var key = Bundle.main.object(forInfoDictionaryKey: "NewsAPIKey") as? String
+        
+        if key == nil || key?.isEmpty == true,
+           let path = Bundle.main.path(forResource: "NewsAPIConfig", ofType: "xcconfig"),
+           let content = try? String(contentsOfFile: path, encoding: .utf8) {
+            key = content.components(separatedBy: .newlines)
+                .first(where: { $0.trimmingCharacters(in: .whitespaces).hasPrefix("NEWS_API_KEY") })?
+                .components(separatedBy: "=").last?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
         }
         
-        if self.apiKey.isEmpty {
-            throw NewsAPIError.apiError("Missing API Key")
-        }
+        guard let finalKey = key, !finalKey.isEmpty else { throw NewsAPIError.missingAPIKey }
+        self.session = session
+        self.apiKey = finalKey
     }
     
     func searchTopHeadlines(country: String = "us", category: String? = nil, pageSize: Int = 20) async throws -> [Article] {
@@ -73,18 +82,10 @@ class NewsAPIClient {
             URLQueryItem(name: "pageSize", value: String(pageSize))
         ]
         
-        // If query is empty, NewsAPI might complain for 'everything' endpoint, but user said "empty query".
-        // NewsAPI documentation says 'q' or 'qInTitle' or 'sources' or 'domains' is required.
-        // If q is empty, we might need a fallback or just send it and see.
-        // However, the user said "NewsView 使用 NewsAPI 跑 everything，搭配空白的 query".
-        // Maybe they mean just listing everything? But 'everything' endpoint usually requires a parameter.
-        // I'll default q to "general" or "news" if empty, or just pass it.
-        // Actually, let's pass "*" if empty, or handle it in ViewModel.
-        
         if !q.isEmpty {
             queryItems.append(URLQueryItem(name: "q", value: q))
         } else {
-             queryItems.append(URLQueryItem(name: "q", value: "news")) // Fallback
+             queryItems.append(URLQueryItem(name: "q", value: "news"))
         }
         
         if let from = from {
