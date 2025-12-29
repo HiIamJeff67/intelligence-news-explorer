@@ -5,11 +5,17 @@ import Combine
 struct ChatMessage: Identifiable, Equatable {
     let id = UUID()
     let role: MessageRole
-    let content: String
+    var content: String
+    var structuredResponse: Summary.PartiallyGenerated?
     
     enum MessageRole {
         case user
         case assistant
+    }
+    
+    static func == (lhs: ChatMessage, rhs: ChatMessage) -> Bool {
+        return lhs.id == rhs.id &&
+               lhs.content == rhs.content
     }
 }
 
@@ -78,9 +84,14 @@ class ChatViewModel: ObservableObject {
                 prompt = userMessage
             }
             
-            let response = try await session.respond(to: prompt)
+            messages.append(ChatMessage(role: .assistant, content: ""))
+            let responseIndex = messages.count - 1
             
-            messages.append(ChatMessage(role: .assistant, content: response.content))
+            let stream = session.streamResponse(to: prompt, generating: Summary.self)
+            for try await partialResponse in stream {
+                messages[responseIndex].structuredResponse = partialResponse.content
+                messages[responseIndex].content = partialResponse.content.summaryText ?? ""
+            }
             
         } catch {
             handleError(error)
@@ -105,17 +116,14 @@ class ChatViewModel: ObservableObject {
     }
     
     private func handleError(_ error: Error) {
-        if let nsError = error as? NSError {
-            var detailedMessage = "System Error (Code \(nsError.code))"
-            
-            if let underlyingErrors = nsError.userInfo[NSMultipleUnderlyingErrorsKey] as? [NSError],
-               let firstError = underlyingErrors.first {
-                detailedMessage = "Core Error: \(firstError.domain) (Code \(firstError.code))"
-            }
-            print("Chat Error: \(detailedMessage)")
-            self.errorMessage = detailedMessage
-        } else {
-            self.errorMessage = error.localizedDescription
+        let nsError = error as NSError
+        var detailedMessage = "System Error (Code \(nsError.code))"
+        
+        if let underlyingErrors = nsError.userInfo[NSMultipleUnderlyingErrorsKey] as? [NSError],
+           let firstError = underlyingErrors.first {
+            detailedMessage = "Core Error: \(firstError.domain) (Code \(firstError.code))"
         }
+        print("Chat Error: \(detailedMessage)")
+        self.errorMessage = detailedMessage
     }
 }

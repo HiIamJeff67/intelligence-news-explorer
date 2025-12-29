@@ -12,6 +12,7 @@ final class NewsViewModel: ObservableObject {
     @Published var isSummarizing: Bool = false
     @Published var aiErrorMessage: String?
     @Published var showAIError: Bool = false
+    @Published var summaryArticle: Article.PartiallyGenerated? = nil
 
     private var client: NewsAPIClient?
     private let aiService = AIService()
@@ -55,21 +56,24 @@ final class NewsViewModel: ObservableObject {
     
     func summarizeHeadlines() async {
         guard !topHeadlines.isEmpty else { return }
-        
         isSummarizing = true
         aiErrorMessage = nil
         summary = ""
-        
-        let headlinesText = topHeadlines.prefix(10).map { $0.title }.joined(separator: "\n- ")
-        
+        let articles = Array(topHeadlines.prefix(4))
+        let combinedText = articles.map { article in
+            """
+            標題: \(article.title)
+            來源: \(article.source.name)
+            內容: \(article.content ?? article.description ?? "")
+            """
+        }.joined(separator: "\n\n")
         do {
-            let result = try await aiService.summarize(text: headlinesText)
+            let result = try await aiService.summarize(text: combinedText)
             self.summary = result
         } catch {
             self.aiErrorMessage = error.localizedDescription
             self.showAIError = true
         }
-        
         isSummarizing = false
     }
 }

@@ -18,6 +18,10 @@ struct MessageView: View {
                 if message.role == .assistant {
                     Text(LocalizedStringKey(message.content))
                         .textSelection(.enabled)
+                    if let summary = message.structuredResponse as? Summary.PartiallyGenerated {
+                        SummaryMessageCardView(summary: summary)
+                            .padding(.top, 8)
+                    }
                 } else {
                     Text(message.content)
                         .padding(12)

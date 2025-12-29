@@ -6,7 +6,7 @@ struct ContentView: View {
     @Query private var userProfiles: [UserProfile]
     
     var body: some View {
-        if !userProfiles.isEmpty || authService.user != nil {
+        if authService.user != nil {
             MainTabView()
         } else {
             AuthView()

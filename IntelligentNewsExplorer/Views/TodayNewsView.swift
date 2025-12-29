@@ -2,6 +2,7 @@ import SwiftUI
 import SafariServices
 import SwiftData
 import FirebaseAuth
+import TipKit
 
 struct TodayNewsView: View {
     @EnvironmentObject var viewModel: NewsViewModel
@@ -9,6 +10,8 @@ struct TodayNewsView: View {
     @Environment(AuthService.self) var authService
     @Query private var userProfiles: [UserProfile]
     @State private var showSummaryView = false
+    
+    private let summaryTip = SummaryTip()
     
     var body: some View {
         NavigationStack {
@@ -27,7 +30,8 @@ struct TodayNewsView: View {
             .navigationTitle("Today's News")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Summary") {
+                    Button {
+                        summaryTip.invalidate(reason: .actionPerformed)
                         Task {
                             await viewModel.summarizeHeadlines()
                             if !viewModel.summary.isEmpty {
@@ -35,8 +39,11 @@ struct TodayNewsView: View {
                                 showSummaryView = true
                             }
                         }
+                    } label: {
+                        Image(systemName: "wand.and.stars")
                     }
                     .disabled(viewModel.isSummarizing || viewModel.topHeadlines.isEmpty)
+                    .popoverTip(summaryTip, arrowEdge: .top)
                 }
             }
             .navigationDestination(isPresented: $showSummaryView) {

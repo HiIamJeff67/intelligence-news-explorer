@@ -23,9 +23,10 @@ struct NewsChatView: View {
                         }
                         
                         if viewModel.isLoading {
-                            ProgressView()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding()
+                            TypingIndicator()
+                                .padding(.leading, 12)
+                                .padding(.vertical, 8)
+                                .id("typingIndicator")
                         }
                         
                         if let error = viewModel.errorMessage {
@@ -76,5 +77,30 @@ struct NewsChatView: View {
         }
         .navigationTitle("AI Summary & Chat")
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct TypingIndicator: View {
+    @State private var isAnimating = false
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(0..<3) { index in
+                Circle()
+                    .frame(width: 6, height: 6)
+                    .foregroundStyle(.secondary)
+                    .scaleEffect(isAnimating ? 1.0 : 0.5)
+                    .opacity(isAnimating ? 1.0 : 0.5)
+                    .animation(
+                        .easeInOut(duration: 0.6)
+                        .repeatForever()
+                        .delay(Double(index) * 0.2),
+                        value: isAnimating
+                    )
+            }
+        }
+        .onAppear {
+            isAnimating = true
+        }
     }
 }
